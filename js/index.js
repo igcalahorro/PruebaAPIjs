@@ -11,6 +11,9 @@ require([
 
     "esri/tasks/Geoprocessor",
     "esri/tasks/FeatureSet",
+    "esri/tasks/QueryTask",
+    "esri/tasks/query",
+    "esri/InfoTemplate",
 
     "esri/graphic",
     "esri/symbols/SimpleMarkerSymbol",
@@ -27,7 +30,7 @@ require([
 
     function (Map, Color, Graphic, graphicsUtils,
         FeatureLayer,
-        Geoprocessor,FeatureSet,
+        Geoprocessor,FeatureSet,QueryTask, Query,InfoTemplate,
         Graphic,SimpleMarkerSymbol,SimpleLineSymbol,SimpleFillSymbol,
 
         webMercatorUtils, Point,
@@ -54,9 +57,9 @@ require([
             //Output fields
             var outFieldsCentros= ["*"];
 
-        gp = new Geoprocessor("https://formacion.esri.es/server/rest/services/RedMadrid/NAServer/Service%20Area");
-        gp.setOutputSpatialReference({wkid: 102100});
-        mapMain.on("click", computeServiceArea);
+        // gp = new Geoprocessor("https://formacion.esri.es/server/rest/services/RedMadrid/NAServer/Service%20Area");
+        // gp.setOutputSpatialReference({wkid: 102100});
+        // mapMain.on("click", computeServiceArea);
 
         function computeServiceArea(evt) {
 
@@ -72,10 +75,24 @@ require([
 
             // var pointLayer = new FeatureLayer("https://services.arcgis.com/V6ZHFr6zdgNZuVG0/arcgis/rest/services/New_Store_Location/FeatureServer/0");
     
-            // var features = [];
-            // features.push(graphic);
+
+
+              //initialize query task
+            queryTask = new QueryTask("https://services5.arcgis.com/zZdalPw2d0tQx8G1/ArcGIS/rest/services/CENTROS_SALUDig/FeatureServer/0");
+
+            //initialize query
+            query = new Query();
+            query.returnGeometry = true;
+            query.outFields = ["LONGITUDE", "LATITUDE"];
+
+            //   initialize InfoTemplate
+            //   infoTemplate = new InfoTemplate()
+
+
+            var features = [];
+            features.push(graphic);
             var featureSet = new FeatureSet();
-            featureSet.lyrSalud = lyrSalud;
+            featureSet.features = features;
             var params = { "Input_Location": featureSet, "Drive_Times": driveTimes };
             gp.execute(params, getDriveTimePolys);
           }
@@ -83,8 +100,8 @@ require([
           function getDriveTimePolys(results, messages) {
             var features = results[0].value.features;
             // add drive time polygons to the map
-            for (var f = 0, fl = lyrSalud.length; f < fl; f++) {
-              var feature = lyrSalud[f];
+            for (var f = 0, fl = features.length; f < fl; f++) {
+              var feature = features[f];
               if (f === 0) {
                 var polySymbolRed = new SimpleFillSymbol();
                 polySymbolRed.setOutline(new SimpleLineSymbol(SimpleLineSymbol.STYLE_SOLID, new Color([0, 0, 0, 0.5]), 1));
